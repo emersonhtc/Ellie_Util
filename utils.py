@@ -1,39 +1,27 @@
 import requests
 import BeautifulSoup
 import datetime
+import urllib2
+import json
+import time
 
-def get_Nday_price(contract='MTX', day=1):
-    results=[]
-    URL = 'http://www.taifex.com.tw/chinese/3/3_1_1_tbl.asp'
-    payload = {
-        'commodity_id': contract,
-        'commodity_id2': '',
-        'qtype': '3',
-        'dateaddcnt': '-1',
-    }
+def get_N_60K_price(contract='MTX', N=1):
+    url = 'http://histock.tw/stock/module/stockdata.aspx?m=minks&time=60&no=FI' + contract
+    response = urllib2.urlopen(url)
+    ret = response.read()
+    ret_json = json.loads(json.loads(ret)['DayK'])
+    for i in ret_json:
+        i[0] = time.strftime("%D %H:%M", time.localtime(int(i[0]/1000) - 8*60*60))
 
-    contract_oft = 1 if contract == 'TX' else 2
-    date_idx = datetime.datetime.now()
-    while day>0:
-        payload['syear'] = str(date_idx.year)
-        payload['smonth'] = str(date_idx.month)
-        payload['sday'] = str(date_idx.day)
+    return ret_json[-int(N):]
 
-        session = requests.session()
-        r = requests.post(URL, data=payload)
-        soup = BeautifulSoup.BeautifulSoup(r.content)
-        table = soup.find("table", {"class" : "table_f"})
 
-        if table:
-            items = [a.text for a in table.findAll("tr")[contract_oft].findAll('td')]
-            results.append(int(items[5]))
-            day-=1
-
-        date_idx -= datetime.timedelta(days=1)
-    return results[::-1]
-
+def get_N_day_price(contract='MTX', N=1):
+    # TODO replace original one with histock
 
 if __name__ == '__main__':
-    print get_Nday_price()
-    print get_Nday_price('TX')
-    print get_Nday_price('MTX', 5)
+    print get_N_60K_price(N=5)
+    print get_N_day_price(N=5)
+    # print get_Nday_price()
+    # print get_Nday_price('TX')
+    # print get_Nday_price('MTX', 5)
