@@ -10,7 +10,7 @@ def transform_time(x):
     tmp=time.localtime(int(x/1000) - 8*60*60)
     return datetime.datetime(*tmp[:6])
 
-def get_N_60K_price(contract='MTX', N=1):
+def get_source_json(contract):
     url = 'http://histock.tw/stock/module/stockdata.aspx?m=minks&time=60&no=FI' + contract
     response = urllib2.urlopen(url)
     ret = response.read()
@@ -19,13 +19,18 @@ def get_N_60K_price(contract='MTX', N=1):
     df = pd.DataFrame.from_records(ret_json, columns=['time','open','high','low','close'])
     df.time = df.time.apply(transform_time)
     df.set_index(keys='time', inplace=True)
+    
+    return df
 
+def get_N_60K_price(contract='MTX', N=1):
+    df = get_source_json(contract)
     return df.close.tail(N).tolist()
     
 
 def get_N_day_price(contract='MTX', N=1):
-    # TODO replace original one with histock
-    return None
+    df = get_source_json(contract)
+    return df[df.index.map(lambda x: x.time())==datetime.time(12, 45)].close.tail(N).tolist()
+
 
 
 if __name__ == '__main__':
