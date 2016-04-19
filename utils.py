@@ -20,7 +20,8 @@ def get_N_60K_price(contract='MTX', N=1):
     df.time = df.time.apply(transform_time)
     df.set_index(keys='time', inplace=True)
 
-    return df
+    return df.close.tail(N).tolist()
+    
 
 def get_N_day_price(contract='MTX', N=1):
     # TODO replace original one with histock
