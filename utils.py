@@ -22,6 +22,15 @@ def get_source_json(contract):
     
     return df
 
+def get_N_60K_MA(contract='MTX',N=1):
+    df = get_source_json(contract)
+    return df.close.tail(N).mean()
+ 
+def get_N_day_MA(contract='MTX',N=1):
+    df = get_source_json(contract)
+    return df[df.index.map(lambda x: x.time())==datetime.time(12, 45)].close.tail(N).mean()
+
+
 def get_N_60K_price(contract='MTX', N=1):
     df = get_source_json(contract)
     return df.close.tail(N).tolist()
@@ -35,7 +44,10 @@ def get_N_day_price(contract='MTX', N=1):
 
 if __name__ == '__main__':
     print get_N_60K_price(N=5)
+    print get_N_60K_MA(N=5)
+    
     print get_N_day_price(N=5)
+    print get_N_day_MA(N=5)
     # print get_Nday_price()
     # print get_Nday_price('TX')
     # print get_Nday_price('MTX', 5)
